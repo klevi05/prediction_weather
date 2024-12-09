@@ -1,26 +1,53 @@
-from flask import Flask, jsonify
+from flask import Flask,request, jsonify
 from pymongo import MongoClient
+from flask_cors import CORS 
+from flask_bcrypt import Bcrypt
 import os
 import sys
 sys.path.append('/mnt/c/Users/klevi/Desktop/flaskSoftware') 
 from predictionBlago.predict_model import generate_forecast
 from predictionTirana.predict_model import generate_forecast_v2
 from predictionClothes.predict_model import predict_outfits
+
 app = Flask(__name__)
+bcrypt = Bcrypt(app)
 #connect to mongoDb
 mongo_client = MongoClient(f"mongodb+srv://{os.getenv('DB_USERNAME')}:{os.getenv('DB_PASSWORD')}@prediction.30xch.mongodb.net/")  # Replace with your MongoDB URI
 db = mongo_client['Prediction']  # Replace with your database name
 collection = db['Users']
+CORS(app, origins=["http://localhost:5173"])
+# Define the user model
+def validate_user(data):
+    """
+    Validate the user data before inserting into MongoDB.
+    """
+    required_fields = {'name', 'lastname', 'email', 'password'}
+    if not all(field in data for field in required_fields):
+        return False, "Missing required fields."
+    return True, None
 
 @app.route("/")
 def home():
     return "hello"
 
-@app.route('/sendUser', methods=['POST'])
-async def sendUser():
-    data = {"ola": "ola"}
+@app.route("/add_user", methods=["POST"])
+def add_user():
+    """
+    Add a new user to the MongoDB collection.
+    Expects JSON payload with name, lastname, email, and password.
+    """
+    data = request.json
+    is_valid, error_message = validate_user(data)
+    if not is_valid:
+        return jsonify({"error": error_message}), 400
+    # Check if the email already exists
+    existing_user = collection.find_one({"email": data.get("email")})
+    if existing_user:
+        return jsonify({"error": "Email already exists"}), 201
+
+    # Insert the validated user into the MongoDB collection
     result = collection.insert_one(data)
-    return jsonify({"message": "Data inserted", "id": str(result.inserted_id)})
+    return jsonify({"message": "User added successfully", "id": str(result.inserted_id)})
 
 @app.route("/blago", methods=['GET'])
 async def blago_forecast():
