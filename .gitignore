@@ -1,0 +1,10 @@
+.env
+/venv
+/__pycache__
+/predictionClothes/data.csv
+/predictionTirana/data.csv
+/predictionBlago/data.csv
+/predictionTirana/*.pkl
+/predictionBlago/*.pkl
+/predictionClothes/*.pkl
+
