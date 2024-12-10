@@ -1,0 +1,9 @@
+python3 -m venv venv
+source venv/bin/activate
+pip install pandas 
+pip install joblib
+pip install sklearn
+pip instal flask
+pip install statsmodels
+pip install flask_cors
+pip install pymongo
