@@ -11,11 +11,11 @@ from predictionClothes.predict_model import predict_outfits
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
+CORS(app, origins=["http://localhost:5173"])
 #connect to mongoDb
 mongo_client = MongoClient(f"mongodb+srv://{os.getenv('DB_USERNAME')}:{os.getenv('DB_PASSWORD')}@prediction.30xch.mongodb.net/")  # Replace with your MongoDB URI
 db = mongo_client['Prediction']  # Replace with your database name
 collection = db['Users']
-CORS(app, origins=["http://localhost:5173"])
 # Define the user model
 def validate_user(data):
     """
@@ -61,14 +61,14 @@ def login():
     # Find the user by email
     user = collection.find_one({"email": email})
     if not user:
-        return 401
+        return jsonify({"error": "Invalid email or password"}), 401
 
     # Verify the password
     stored_password_hash = user["password"]
     if bcrypt.check_password_hash(stored_password_hash, password):
-        return 200
+        return jsonify({'message': 'succes'}), 200
     else:
-        return 404
+        return jsonify({"message":'something went wrong'}), 404
 
 @app.route("/blago", methods=['GET'])
 async def blago_forecast():
