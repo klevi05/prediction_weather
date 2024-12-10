@@ -49,6 +49,27 @@ def add_user():
     result = collection.insert_one(data)
     return jsonify({"message": "User added successfully", "id": str(result.inserted_id)})
 
+@app.route("/login", methods=["POST"])
+def login():
+    """
+    Login function to verify email and password.
+    """
+    # Parse JSON request
+    data = request.json
+    email = data.get("email")
+    password = data.get("password")
+    # Find the user by email
+    user = collection.find_one({"email": email})
+    if not user:
+        return 401
+
+    # Verify the password
+    stored_password_hash = user["password"]
+    if bcrypt.check_password_hash(stored_password_hash, password):
+        return 200
+    else:
+        return 404
+
 @app.route("/blago", methods=['GET'])
 async def blago_forecast():
     forecast_dict = generate_forecast()
